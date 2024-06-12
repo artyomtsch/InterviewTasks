@@ -10,8 +10,7 @@ public class BlackHat {
     public BlackHat(String filename) throws IOException {
         uniqueUsers = new HashMap<>();
 
-        BufferedReader bufferedReader =
-                new BufferedReader(new FileReader(filename));
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(filename));
 
         String line;
         while ((line = bufferedReader.readLine()) != null) {
