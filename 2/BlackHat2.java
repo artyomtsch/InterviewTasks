@@ -51,13 +51,12 @@ public class BlackHat2 {
 
         phone = phone.substring(2);
         int phoneNumber = (int) (Long.parseLong(phone) - 8_000_000_000L);
-        String[] name = uniqueUsers.get(phoneNumber);
+        String[] fullNameArr = uniqueUsers.get(phoneNumber);
 
-        if (name == null) {
+        if (fullNameArr == null) {
             return "Not found";
         }
 
-        String fullName = name[0] + " " + name[1] + " " + name[2];
-        return fullName;
+        return fullNameArr[0] + " " + fullNameArr[1] + " " + fullNameArr[2];
     }
 }
