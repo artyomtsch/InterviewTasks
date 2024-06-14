@@ -52,36 +52,17 @@ class LinesProducer implements Runnable {
 
     @Override
     public void run() {
-        BufferedReader bufferedReader = initialize();
-        String curLine;
-        while ((curLine = readLine(bufferedReader)) != null) {
-            String name = curLine.split(":", 2)[0];
-            put(Map.entry(name, curLine));
-        }
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(this.filename))) {
+            String curLine;
+            while ((curLine = bufferedReader.readLine()) != null) {
+                String name = curLine.split(":", 2)[0];
+                queue.put(Map.entry(name, curLine));
+            }
 
-        put(DUMMY);
-    }
-
-    private BufferedReader initialize() {
-        try {
-            return new BufferedReader(new FileReader(this.filename));
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String readLine(BufferedReader bufferedReader) {
-        try {
-            return bufferedReader.readLine();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void put(Map.Entry<String,String> value) {
-        try {
-            queue.put(value);
-        } catch (InterruptedException e) {
+            queue.put(DUMMY);
+        } catch (InterruptedException | IOException e) {
+            System.err.println(e.getMessage());
+            throw new RuntimeException();
         }
     }
 }
