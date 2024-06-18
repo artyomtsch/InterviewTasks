@@ -18,8 +18,6 @@ public class BlackHat {
             String fullName = line.split(",")[1];
             uniqueUsers.put(phone, fullName);
         }
-
-        HashMap<Integer, int[]> map = new HashMap<>();
     }
 
     public String getUser(String phone) {
