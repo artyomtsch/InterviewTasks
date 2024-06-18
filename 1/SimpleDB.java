@@ -1,27 +1,31 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 
+// O(logn) in-memory database
 public class SimpleDB {
-    private TreeMap<Long, Record> records = new TreeMap<>();
-    private TreeMap<String, List<Long>> nameIndex = new TreeMap<>();
-    private TreeMap<Double, List<Long>> valueIndex = new TreeMap<>();
+    private Map<Long, Record> records = new TreeMap<>();
+    private Map<String, Set<Record>> nameIndex = new TreeMap<>();
+    private Map<Double, Set<Record>> valueIndex = new TreeMap<>();
 
-    public SimpleDB(String csv) throws IOException {
-        BufferedReader bufferedReader =
-                new BufferedReader(new FileReader(csv));
+    public SimpleDB() {
+    }
 
-        String line;
-        while ((line = bufferedReader.readLine()) != null) {
-            String[] recordArr = line.split(",");
-            long account = Long.parseLong(recordArr[0]);
-            String name  = recordArr[1];
-            double value = Double.parseDouble(recordArr[2]);
+    // Test
+    public SimpleDB(String csv) {
+        try (var bufferedReader = new BufferedReader(new FileReader(csv))) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] recordArr = line.split(",");
+                long account = Long.parseLong(recordArr[0]);
+                String name = recordArr[1];
+                double value = Double.parseDouble(recordArr[2]);
 
-            add(new Record(account, name, value));
+                add(new Record(account, name, value));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -31,10 +35,10 @@ public class SimpleDB {
         }
 
         records.put(record.account, record);
-        nameIndex.computeIfAbsent(record.name, k -> new ArrayList<Long>())
-                .add(record.account);
-        valueIndex.computeIfAbsent(record.value, k -> new ArrayList<Long>())
-                .add(record.account);
+        nameIndex.computeIfAbsent(record.name, k -> new HashSet<Record>())
+                .add(record);
+        valueIndex.computeIfAbsent(record.value, k -> new HashSet<Record>())
+                .add(record);
 
         return true;
     }
@@ -47,18 +51,18 @@ public class SimpleDB {
         Record record = records.get(account);
 
         records.remove(account);
-        removeFromIndex(nameIndex, record.name, account);
-        removeFromIndex(valueIndex, record.value, account);
+        removeFromIndex(nameIndex, record.name, record);
+        removeFromIndex(valueIndex, record.value, record);
 
         return true;
     }
 
     private <T> void removeFromIndex(
-            TreeMap<T, List<Long>> index,
+            Map<T, Set<Record>> index,
             T key,
-            long account
+            Record account
     ) {
-        List<Long> accounts = index.get(key);
+        Set<Record> accounts = index.get(key);
         accounts.remove(account);
         if (accounts.isEmpty()) {
             index.remove(key);
@@ -106,28 +110,20 @@ public class SimpleDB {
         return records.get(account);
     }
 
-    public List<Record> get(String name) {
+    public Set<Record> get(String name) {
         if (nameIndex.get(name) == null) {
             return null;
         }
 
-        List<Record> result = new ArrayList<>();
-        for (Long acc : nameIndex.get(name)) {
-            result.add(records.get(acc));
-        }
-        return result;
+        return nameIndex.get(name);
     }
 
-    public List<Record> get(Double value) {
+    public Set<Record> get(Double value) {
         if (valueIndex.get(value) == null) {
             return null;
         }
 
-        List<Record> result = new ArrayList<>();
-        for (Long acc : valueIndex.get(value)) {
-            result.add(records.get(acc));
-        }
-        return result;
+        return valueIndex.get(value);
     }
 }
 
@@ -140,5 +136,27 @@ class Record {
         this.account = account;
         this.name = name;
         this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return account + " " + name + " " + value;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+
+        return account == ((Record) obj).account;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(account);
     }
 }
